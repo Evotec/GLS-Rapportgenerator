@@ -30,7 +30,7 @@ Hvis Windows ikke kan finde Python, kan det installeres fra Microsoft Store elle
 
 ## Standard API-adresse
 
-Programmet bruger Evotecs white-label GPS-adresse som standard:
+Programmet bruger Evotecs GPS-adresse som standard:
 
 ```text
 https://gps.evotec.dk
