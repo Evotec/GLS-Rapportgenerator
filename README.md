@@ -14,7 +14,7 @@ Programmet ændrer ikke distance- eller timekolonnerne fra Excel-filen. Det tilf
 
 Almindelige brugere skal hente den færdige Windows-version under **Releases** ude til højre på siden:
 
-
+<img width="378" height="176" alt="image" src="https://github.com/user-attachments/assets/139c36fe-a705-4e3c-9a2f-7832fc03f7d1" />
 
 ```text
 GLS Rapportgenerator.exe
