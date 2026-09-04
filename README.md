@@ -10,9 +10,9 @@ Programmet ændrer ikke distance- eller timekolonnerne fra Excel-filen. Det tilf
 - Fuel type
 - Unit ID
 
-## Anbefalet brug: Windows EXE
+## Download for almindelige brugere
 
-Til almindelige brugere anbefales den færdige Windows-version:
+Almindelige brugere skal hente den færdige Windows-version under **Releases**:
 
 ```text
 GLS Rapportgenerator.exe
@@ -20,15 +20,19 @@ GLS Rapportgenerator.exe
 
 Den kræver ikke Python på computeren.
 
-Sådan hentes EXE-filen:
+Download-link:
 
-1. Åbn dette repository på GitHub.
-2. Klik **Actions**.
-3. Klik **Build Windows EXE**.
-4. Åbn den nyeste succesfulde kørsel.
-5. Download artifactet **GLS-Rapportgenerator-Windows**.
-6. Pak ZIP-filen ud.
-7. Dobbeltklik på `GLS Rapportgenerator.exe`.
+```text
+https://github.com/Evotec/GLS-Rapportgenerator/releases
+```
+
+Sådan hentes programmet:
+
+1. Åbn linket til **Releases**.
+2. Vælg den nyeste release.
+3. Download Windows-filen, typisk `GLS-Rapportgenerator-Windows.zip` eller `GLS Rapportgenerator.exe`.
+4. Hvis det er en ZIP-fil, så pak den ud først.
+5. Dobbeltklik på `GLS Rapportgenerator.exe`.
 
 Første gang kan Windows/Defender vise en advarsel, fordi programmet ikke er signeret. Vælg **Flere oplysninger** og derefter **Kør alligevel**, hvis filen er hentet fra Evotecs eget GitHub-repository.
 
@@ -43,18 +47,9 @@ Første gang kan Windows/Defender vise en advarsel, fordi programmet ikke er sig
 
 API-nøglen gemmes kun lokalt i browseren på brugerens computer. Den skal ikke lægges på GitHub.
 
-## Alternativ: kør fra Python
+## For teknikere: build via GitHub Actions
 
-Hvis man ikke bruger EXE-filen, kan programmet også startes med Python:
-
-1. Hent eller klon dette repository.
-2. Dobbeltklik på `Start GLS Rapport.bat`.
-
-Denne metode kræver, at Python er installeret på computeren. Programmet kræver ikke `pip`, `openpyxl`, PyInstaller eller andre ekstra Python-pakker.
-
-## Byg EXE igen
-
-EXE-filen bygges automatisk med GitHub Actions.
+EXE-filen bygges med GitHub Actions.
 
 Manuel rebuild:
 
@@ -63,7 +58,19 @@ Manuel rebuild:
 3. Klik **Run workflow**.
 4. Vælg branch `main`.
 5. Klik **Run workflow**.
-6. Download det nye artifact, når workflowet er færdigt.
+6. Når workflowet er færdigt, download artifactet **GLS-Rapportgenerator-Windows**.
+7. Upload den nye ZIP/EXE til **Releases**, så almindelige brugere kan hente den derfra.
+
+Vigtigt: **Actions artifacts er primært til teknikere. Almindelige brugere skal hente programmet fra Releases.**
+
+## Alternativ: kør fra Python
+
+Hvis man ikke bruger EXE-filen, kan programmet også startes med Python:
+
+1. Hent eller klon dette repository.
+2. Dobbeltklik på `Start GLS Rapport.bat`.
+
+Denne metode kræver, at Python er installeret på computeren. Programmet kræver ikke `pip`, `openpyxl`, PyInstaller eller andre ekstra Python-pakker.
 
 ## Standard API-adresse
 
