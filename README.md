@@ -34,6 +34,8 @@ Sådan hentes programmet:
 4. Hvis det er en ZIP-fil, så pak den ud først.
 5. Dobbeltklik på `GLS Rapportgenerator.exe`.
 
+<img width="498" height="278" alt="image" src="https://github.com/user-attachments/assets/46efc274-e8cd-4514-8b29-0c48efa0bf12" />
+
 Første gang kan Windows/Defender vise en advarsel, fordi programmet ikke er signeret. Vælg **Flere oplysninger** og derefter **Kør alligevel**, hvis filen er hentet fra Evotecs eget GitHub-repository.
 
 ## Brug af programmet
