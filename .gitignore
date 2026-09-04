@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+last_error.txt
+*.log
+*.csv
+*.xlsx
+*.xls
+*.zip
+.env
+api_key.txt
