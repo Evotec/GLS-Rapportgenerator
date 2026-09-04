@@ -1,6 +1,6 @@
 # GLS Evotec Rapportgenerator
 
-Lille lokalt værktøj til GLS/Evotec, der beriger Evotec GPS / Mapon `Distance by hours` Excel-eksporter med metadata fra Evotec GPS API.
+Lille lokalt værktøj til GLS/Evotec, der beriger Evotec / Mapon Excel-eksporter med metadata fra Evotec GPS API.
 
 Programmet ændrer ikke distance- eller timekolonnerne fra Excel-filen. Det tilføjer kun metadata:
 
