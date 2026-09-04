@@ -14,8 +14,6 @@ Programmet ændrer ikke distance- eller timekolonnerne fra Excel-filen. Det tilf
 
 Almindelige brugere skal hente den færdige Windows-version under **Releases** ude til højre på siden:
 
-https://github.com/Evotec/GLS-Rapportgenerator/tags
-
 ```text
 GLS Rapportgenerator.exe
 ```
