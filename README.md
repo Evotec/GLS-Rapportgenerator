@@ -12,7 +12,9 @@ Programmet ændrer ikke distance- eller timekolonnerne fra Excel-filen. Det tilf
 
 ## Download for almindelige brugere
 
-Almindelige brugere skal hente den færdige Windows-version under **Releases**:
+Almindelige brugere skal hente den færdige Windows-version under **Releases** ude til højre på siden:
+
+
 
 ```text
 GLS Rapportgenerator.exe
