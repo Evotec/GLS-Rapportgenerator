@@ -59,21 +59,20 @@ Ved ændringer i kildekoden skal der bygges en ny EXE via **Actions** og uploade
 
 API-nøglen gemmes kun lokalt i browseren på brugerens computer. Den skal ikke lægges på GitHub.
 
-## For teknikere: build via GitHub Actions
+## For teknikere: build og udgivelse via GitHub Actions
 
-EXE-filen bygges med GitHub Actions.
+Når ændringer pushes til `main`, tester GitHub Actions programmet, bygger Windows-EXE'en og lægger automatisk **GLS-Rapportgenerator-Windows.zip** under **Releases**, hvis buildet er succesfuldt. Release-tagget hentes fra `VERSION` i `app.py` (fx `v38`). Husk at hæve versionsnummeret ved nye programversioner.
 
-Manuel rebuild:
+Manuelt build og udgivelse:
 
 1. Gå til **Actions**.
 2. Vælg **Build Windows EXE**.
 3. Klik **Run workflow**.
-4. Vælg branch `main`.
-5. Klik **Run workflow**.
-6. Når workflowet er færdigt, download artifactet **GLS-Rapportgenerator-Windows**.
-7. Upload den nye ZIP/EXE til **Releases**, så almindelige brugere kan hente den derfra.
+4. Vælg branch `main` og start workflowet.
+5. Kontrollér at workflowet gennemføres med grønt flueben.
+6. Kontrollér, at den nye ZIP ligger under **Releases**.
 
-Vigtigt: **Actions artifacts er primært til teknikere. Almindelige brugere skal hente programmet fra Releases.**
+**Actions artifacts er til teknikere. Almindelige brugere downloader fra Releases.**
 
 ## Alternativ: kør fra Python
 
