@@ -5,6 +5,7 @@ from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs, urlencode
 from urllib.request import Request, urlopen
 import csv
+from datetime import datetime, date, timedelta
 import io
 import json
 import os
@@ -15,7 +16,7 @@ import zipfile
 import xml.etree.ElementTree as ET
 
 APP_TITLE = "GLS Rapportgenerator"
-VERSION = "v37"
+VERSION = "v38"
 PORT = 8765
 
 LAST_ROWS = []
@@ -236,6 +237,73 @@ def detect_table(rows):
             break
         data_rows.append(r)
     return headers, data_rows, total_row, header_i + 1
+
+# Dates are read from the exported report, never from the time this program runs.
+DATE_PATTERN = re.compile(
+    r"(?<!\\d)(?:\\d{4}[-/.]\\d{1,2}[-/.]\\d{1,2}|\\d{1,2}[-/.]\\d{1,2}[-/.]\\d{4})(?!\\d)"
+)
+
+def parse_report_date(value):
+    s = clean(value)
+    if not s:
+        return ""
+    # Numeric Excel dates are stored as days since 1899-12-30.
+    if re.fullmatch(r"\\d{5}(?:\\.0+)?", s):
+        try:
+            days = int(float(s))
+            if 36526 <= days <= 73050:  # 2000-01-01 through 2099-12-31
+                return (date(1899, 12, 30) + timedelta(days=days)).isoformat()
+        except (ValueError, OverflowError):
+            pass
+    m = DATE_PATTERN.search(s)
+    if not m:
+        return ""
+    value = m.group(0)
+    formats = ("%Y-%m-%d", "%Y/%m/%d", "%Y.%m.%d",
+               "%d.%m.%Y", "%d/%m/%Y", "%d-%m-%Y")
+    for fmt in formats:
+        try:
+            return datetime.strptime(value, fmt).date().isoformat()
+        except ValueError:
+            continue
+    return ""
+
+def report_dates_from_header(xlsx_rows, header_number):
+    """Extract distinct dates only from the report's introductory rows."""
+    header_rows = xlsx_rows[:header_number - 1]
+    found = []
+    for row in header_rows:
+        for cell in row:
+            text = clean(cell)
+            for m in DATE_PATTERN.finditer(text):
+                parsed = parse_report_date(m.group(0))
+                if parsed and parsed not in found:
+                    found.append(parsed)
+            # Standalone Excel serial dates in the top metadata rows.
+            if re.fullmatch(r"\\d{5}(?:\\.0+)?", text):
+                parsed = parse_report_date(text)
+                if parsed and parsed not in found:
+                    found.append(parsed)
+    return found
+
+def excel_trip_dates(all_rows, headers, data_rows, header_number):
+    """Use per-row date where present, otherwise an unambiguous one-day report period."""
+    normalized_headers = [clean(h).lower() for h in headers]
+    date_idx = next((i for i, h in enumerate(normalized_headers)
+                     if h in ("date", "dato", "driving date", "trip date", "day", "kørselsdato")), -1)
+    period_dates = report_dates_from_header(all_rows, header_number)
+    if date_idx >= 0:
+        values = [parse_report_date(r[date_idx] if date_idx < len(r) else "") for r in data_rows]
+        if all(values):
+            return values
+        if len(period_dates) == 1:
+            return [v or period_dates[0] for v in values]
+        raise ValueError("Dato-kolonnen i Excel indeholder tomme eller ugyldige datoer. Kan ikke fastslå kørselsdatoen entydigt.")
+    if len(period_dates) == 1:
+        return [period_dates[0]] * len(data_rows)
+    if len(period_dates) > 1:
+        raise ValueError("Excel-rapporten indeholder flere forskellige datoer, men ingen dato pr. bil/række. Eksportér 'Distance by hours' for én kørselsdag ad gangen.")
+    raise ValueError("Kørselsdato blev ikke fundet i Evotec Excel-eksportens rapporthoved. Eksportér en rapport med dato/periode øverst, så datoen kan aflæses sikkert.")
 
 def api_get(base_url, endpoint, api_key, auth_mode="query", api_param="key", timeout=4, params=None):
     params = params or {}
@@ -461,8 +529,11 @@ def parse_manual(text):
 
 def enrich(data, config):
     LAST_LOG.clear()
-    headers, raw_rows, total_row, header_no = detect_table(read_xlsx_rows(data))
+    all_excel_rows = read_xlsx_rows(data)
+    headers, raw_rows, total_row, header_no = detect_table(all_excel_rows)
+    trip_dates = excel_trip_dates(all_excel_rows, headers, raw_rows, header_no)
     log(f"Læser Excel: header række {header_no}; kolonner: {len(headers)}; data-rækker: {len(raw_rows)}")
+    log(f"Kørselsdato fra Excel: {trip_dates[0] if trip_dates else 'ingen data'}" + (f" (flere datoer)" if len(set(trip_dates)) > 1 else ""))
     lower = [h.lower().strip() for h in headers]
 
     def idx(names):
@@ -490,7 +561,8 @@ def enrich(data, config):
 
     meta_headers = ["Groups", "Depot", "Client", "Fuel type", "Unit ID"]
     existing_meta = {h.lower() for h in meta_headers}
-    base_headers = [h for h in headers if h.lower() not in existing_meta]
+    existing_dates = {"date", "dato", "driving date", "trip date", "day", "kørselsdato"}
+    base_headers = [h for h in headers if h.lower() not in existing_meta and h.lower() not in existing_dates]
 
     lower_base = [h.lower().strip() for h in base_headers]
     def base_idx(names):
@@ -500,11 +572,12 @@ def enrich(data, config):
         return -1
 
     insert_after = max([x for x in [base_idx(["Vehicle title"]), base_idx(["Make / Model", "Make /Model", "Make/Model"]), base_idx(["Licence plate", "License plate"])] if x >= 0])
-    new_headers = base_headers[:insert_after + 1] + meta_headers + base_headers[insert_after + 1:]
+    # Dato stands directly after the vehicle identity columns.
+    new_headers = base_headers[:insert_after + 1] + ["Dato"] + meta_headers + base_headers[insert_after + 1:]
 
     out = []
     matched = groups_api = groups_empty = client_count = 0
-    for r in raw_rows:
+    for row_number, r in enumerate(raw_rows):
         rowdict = {headers[i]: clean(r[i]) if i < len(r) else "" for i in range(len(headers))}
         plate = norm_plate(r[plate_i])
         u = by_plate.get(plate, {})
@@ -536,6 +609,7 @@ def enrich(data, config):
         newrow = {}
         for h in base_headers[:insert_after + 1]:
             newrow[h] = rowdict.get(h, "")
+        newrow["Dato"] = trip_dates[row_number]
         for h in meta_headers:
             newrow[h] = meta[h]
         for h in base_headers[insert_after + 1:]:
@@ -559,7 +633,7 @@ def enrich(data, config):
         sm = out[0]
         log(f"Sample metadata: plate={sm.get(headers[plate_i])}, groups={sm.get('Groups')}, depot={sm.get('Depot')}, client={sm.get('Client')}")
     log("Færdig. Distance-tal kommer direkte fra Evotec Excel-eksport og er ikke genberegnet.")
-    log("CSV downloades med dansk talformat: semikolon og komma som decimaltegn.")
+    log("CSV downloades med dansk talformat: semikolon og komma som decimaltegn. Dato kommer fra Excel.")
     return new_headers, out, {"matched": matched, "source_rows": len(raw_rows), "total_km": total_km}
 
 def parse_multipart_form(handler):
