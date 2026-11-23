@@ -38,6 +38,16 @@ Sådan hentes programmet:
 
 Første gang kan Windows/Defender vise en advarsel, fordi programmet ikke er signeret. Vælg **Flere oplysninger** og derefter **Kør alligevel**, hvis filen er hentet fra Evotecs eget GitHub-repository.
 
+## Kørselsdato i rapporten
+
+CSV-filen indeholder kolonnen **Dato** umiddelbart efter bilens identifikationskolonner. Datoen hentes fra Evotecs `Distance by hours` Excel-eksport, **ikke** fra datoen, hvor rapportgeneratoren køres.
+
+- Hvis Excel indeholder en dato pr. række, bruges denne.
+- Hvis Excel indeholder en entydig kørselsdato i rapporthovedet, gentages den på hver række.
+- Hvis eksporten dækker flere dage uden dato pr. række, eller dato mangler, stopper programmet med en forklarende fejl i stedet for at sætte en forkert dato ind. Eksportér i så fald én kørselsdag ad gangen.
+
+Ved ændringer i kildekoden skal der bygges en ny EXE via **Actions** og uploades en ny version til **Releases**, før almindelige brugere får ændringen.
+
 ## Brug af programmet
 
 1. Åbn `GLS Rapportgenerator.exe`.
