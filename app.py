@@ -240,7 +240,7 @@ def detect_table(rows):
 
 # Dates are read from the exported report, never from the time this program runs.
 DATE_PATTERN = re.compile(
-    r"(?<!\\d)(?:\\d{4}[-/.]\\d{1,2}[-/.]\\d{1,2}|\\d{1,2}[-/.]\\d{1,2}[-/.]\\d{4})(?!\\d)"
+    r"(?<!\d)(?:\d{4}[-/.]\d{1,2}[-/.]\d{1,2}|\d{1,2}[-/.]\d{1,2}[-/.]\d{4})(?!\d)"
 )
 
 def parse_report_date(value):
@@ -248,7 +248,7 @@ def parse_report_date(value):
     if not s:
         return ""
     # Numeric Excel dates are stored as days since 1899-12-30.
-    if re.fullmatch(r"\\d{5}(?:\\.0+)?", s):
+    if re.fullmatch(r"\d{5}(?:\.0+)?", s):
         try:
             days = int(float(s))
             if 36526 <= days <= 73050:  # 2000-01-01 through 2099-12-31
@@ -280,7 +280,7 @@ def report_dates_from_header(xlsx_rows, header_number):
                 if parsed and parsed not in found:
                     found.append(parsed)
             # Standalone Excel serial dates in the top metadata rows.
-            if re.fullmatch(r"\\d{5}(?:\\.0+)?", text):
+            if re.fullmatch(r"\d{5}(?:\.0+)?", text):
                 parsed = parse_report_date(text)
                 if parsed and parsed not in found:
                     found.append(parsed)
